@@ -19,12 +19,26 @@ package readline
 
 import (
 	"io"
+	"regexp"
+	"strings"
 )
 
 type Instance struct {
 	Config    *Config
 	Terminal  *Terminal
 	Operation *Operation
+}
+
+func removeLBR(text string) string {
+	re := regexp.MustCompile(`\s+`)
+	return strings.Trim(re.ReplaceAllString(text, " "), " ")
+}
+
+func (i *Instance) WriteToHistory(s string) (err error) {
+	cleanedStr := removeLBR(s)
+	err = i.Operation.SaveHistory(cleanedStr)
+	i.Operation.buf.Clean()
+	return err
 }
 
 type Config struct {
@@ -38,6 +52,8 @@ type Config struct {
 	DisableAutoSaveHistory bool
 	// enable case-insensitive history searching
 	HistorySearchFold bool
+	// flag for whether history wil be handled internally or else called externally
+	HistoryExternalWrite bool
 
 	// AutoCompleter will called once user press TAB
 	AutoComplete AutoCompleter

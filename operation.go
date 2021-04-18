@@ -32,6 +32,8 @@ type Operation struct {
 	*opCompleter
 	*opPassword
 	*opVim
+
+	historyExternalWrite bool
 }
 
 func (o *Operation) SetBuffer(what string) {
@@ -69,10 +71,11 @@ func (w *wrapWriter) Write(b []byte) (int, error) {
 func NewOperation(t *Terminal, cfg *Config) *Operation {
 	width := cfg.FuncGetWidth()
 	op := &Operation{
-		t:       t,
-		buf:     NewRuneBuffer(t, cfg.Prompt, cfg, width),
-		outchan: make(chan []rune),
-		errchan: make(chan error, 1),
+		t:                    t,
+		buf:                  NewRuneBuffer(t, cfg.Prompt, cfg, width),
+		outchan:              make(chan []rune),
+		errchan:              make(chan error, 1),
+		historyExternalWrite: cfg.HistoryExternalWrite,
 	}
 	op.w = op.buf.w
 	op.SetConfig(cfg)
@@ -252,7 +255,7 @@ func (o *Operation) ioloop() {
 				data = o.buf.Reset()
 			}
 			o.outchan <- data
-			if !o.GetConfig().DisableAutoSaveHistory {
+			if !o.GetConfig().DisableAutoSaveHistory && !o.historyExternalWrite {
 				// ignore IO error
 				_ = o.history.New(data)
 			} else {

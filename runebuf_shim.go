@@ -13,7 +13,7 @@ import (
 
 func (r *RuneBuffer) cursorPosition() []byte {
 
-	if runtime.GOOS != "darwin" {
+	if runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
 		return r.getBackspaceSequence()
 	}
 

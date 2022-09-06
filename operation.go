@@ -3,6 +3,7 @@ package readline
 import (
 	"errors"
 	"io"
+	"runtime"
 	"sync"
 )
 
@@ -285,6 +286,9 @@ func (o *Operation) ioloop() {
 				if !o.buf.Delete() {
 					o.t.Bell()
 				}
+				break
+			}
+			if o.buf.Len() > 0 && runtime.GOOS == "windows" {
 				break
 			}
 
